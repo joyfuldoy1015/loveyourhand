@@ -82,7 +82,7 @@ export function HandwritingText({
                       d={`M${seg}`}
                       fill="none"
                       stroke={color}
-                      strokeWidth={Math.max(1.5, fontSize * 0.028)}
+                      strokeWidth={Math.max(2, fontSize * 0.042)}
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       transform={`scale(${scale})`}

@@ -161,9 +161,10 @@ export function normalizeGlyphStrokes(
 
   // Step 1: pre-smooth then reduce
   // minDistanceFilter removes stutter clusters → smoothPoints removes jitter → D-P simplifies
+  // 6 smoothing passes for iPad high-frequency input; ε=0.8 keeps enough curve-defining points
   const reduced = validStrokes.map((s) => ({
     ...s,
-    points: douglasPeucker(smoothPoints(minDistanceFilter(s.points, 3), 3), 1.5),
+    points: douglasPeucker(smoothPoints(minDistanceFilter(s.points, 3), 6), 0.8),
   }));
 
   // Step 2: bounding box in canvas coordinates
