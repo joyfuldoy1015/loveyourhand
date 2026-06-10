@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { PostitColor } from '@/types';
+import type { PostitColor, FontLanguage } from '@/types';
 
 const COLORS: { value: PostitColor; hex: string; label: string }[] = [
   { value: 'yellow', hex: '#FFF3A3', label: 'Yellow' },
@@ -11,13 +11,36 @@ const COLORS: { value: PostitColor; hex: string; label: string }[] = [
   { value: 'cream',  hex: '#FAF0E6', label: 'Cream'  },
 ];
 
-const PRESET_QUOTES = [
-  'Handmade in a machine-made world.',
-  'Love your hand.',
-  'Some things are better imperfect.',
-  'Your handwriting deserves a place in the digital world.',
-  'Turn your handwriting into something worth keeping.',
-];
+const PRESETS: Record<string, string[]> = {
+  en: [
+    'Handmade in a machine-made world.',
+    'Love your hand.',
+    'Some things are better imperfect.',
+    'Your handwriting deserves a place in the digital world.',
+    'Turn your handwriting into something worth keeping.',
+  ],
+  ko: [
+    'ㄴㅐ ㅅㅗㄴㄱㅡㄹㅆㅣ',
+    'ㅅㅏㄹㄹㅏㅇ ㅎㅐ',
+    'ㅇㅗㄴㄹㅡㄹ ㄷㅗ ㅈㅏㄹ',
+    'ㅎㅏㄴ ㅂㅓㄴ ㄷㅓ',
+    'ㅇㅣ ㄱㅡㄹㅆㅣ ㄴㅐ ㄱㅓ',
+  ],
+  ja: [
+    'てのきせき',
+    'わたしのて',
+    'ひとつのもの',
+    'てにとるきおく',
+    'そのてのかたち',
+  ],
+  mixed: [
+    'Handmade in a machine-made world.',
+    'Love your hand.',
+    'ㄴㅐ ㅅㅗㄴㄱㅡㄹㅆㅣ',
+    'Some things are better imperfect.',
+    'ㅅㅏㄹㄹㅏㅇ ㅎㅐ',
+  ],
+};
 
 type ContentMode = 'preset' | 'custom';
 
@@ -29,6 +52,7 @@ interface Props {
   padding: number;
   template: 'postit' | 'note' | 'polaroid';
   contentMode: ContentMode;
+  language?: FontLanguage;
   onText: (v: string) => void;
   onColor: (v: PostitColor) => void;
   onFontSize: (v: number) => void;
@@ -39,9 +63,10 @@ interface Props {
 }
 
 export function CardEditor({
-  text, color, fontSize, lineHeight, padding, template, contentMode,
+  text, color, fontSize, lineHeight, padding, template, contentMode, language,
   onText, onColor, onFontSize, onLineHeight, onPadding, onTemplate, onContentMode,
 }: Props) {
+  const presets = PRESETS[language ?? 'en'] ?? PRESETS.en;
   return (
     <div className="space-y-6">
 
@@ -102,7 +127,7 @@ export function CardEditor({
 
         {contentMode === 'preset' ? (
           <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
-            {PRESET_QUOTES.map((q) => (
+            {presets.map((q) => (
               <button
                 key={q}
                 onClick={() => onText(q)}

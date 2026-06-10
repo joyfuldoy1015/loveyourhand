@@ -30,21 +30,26 @@ export function CardPageClient() {
   const [template, setTemplate]     = useState<'postit' | 'note' | 'polaroid'>('postit');
   const [contentMode, setContentMode] = useState<'preset' | 'custom'>('preset');
 
-  // Load font
+  // Load font and set language-appropriate initial text
   useEffect(() => {
+    const FIRST_PRESET: Record<string, string> = {
+      en:    'Handmade in a machine-made world.',
+      ko:    'ㄴㅐ ㅅㅗㄴㄱㅡㄹㅆㅣ',
+      ja:    'てのきせき',
+      mixed: 'Handmade in a machine-made world.',
+    };
     const fontId = searchParams.get('fontId');
     setIsLoading(true);
+    const apply = (f: UserFont | undefined) => {
+      const resolved = f ?? null;
+      setFont(resolved);
+      if (resolved) setText(FIRST_PRESET[resolved.language] ?? FIRST_PRESET.en);
+      setIsLoading(false);
+    };
     if (fontId) {
-      fontRepo.getById(fontId).then((f) => {
-        setFont(f ?? null);
-        setIsLoading(false);
-      });
+      fontRepo.getById(fontId).then(apply);
     } else {
-      // No fontId — try latest
-      fontRepo.getLatest().then((f) => {
-        setFont(f ?? null);
-        setIsLoading(false);
-      });
+      fontRepo.getLatest().then(apply);
     }
   }, [searchParams]);
 
@@ -165,6 +170,7 @@ export function CardPageClient() {
                   padding={padding}
                   template={template}
                   contentMode={contentMode}
+                  language={font?.language}
                   onText={setText}
                   onColor={setColor}
                   onFontSize={setFontSize}
