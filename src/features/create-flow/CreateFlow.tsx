@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid';
 import type { FontLanguage, UserFont, Glyph } from '@/types';
 import { getGlyphsForLanguage } from '@/lib/glyphs';
 import { fontRepo } from '@/lib/db';
+import { deriveGlyphs, isDerivedChar } from '@/lib/smartGlyph';
 import { LanguageSelector } from './LanguageSelector';
 import { DrawingView } from '@/features/drawing/DrawingView';
 import { analytics } from '@/lib/analytics';
@@ -26,17 +27,40 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function buildFont(language: FontLanguage): UserFont {
+function buildFont(language: FontLanguage, smartMode: boolean): UserFont {
   const glyphDefs = getGlyphsForLanguage(language);
-  const glyphs: Glyph[] = shuffle(
-    glyphDefs.map((def) => ({
+
+  const makeGlyph = (char: string, unicode: number, type: Glyph['type'], derived: boolean): Glyph => ({
+    id: nanoid(),
+    character: char,
+    unicode,
+    type,
+    strokes: [],
+    isComplete: false,
+    isDerived: derived,
+  });
+
+  if (smartMode) {
+    // Key glyphs (drawable) go first — shuffled.
+    // Derived glyphs go after — not shown in the drawing queue.
+    const keyDefs  = glyphDefs.filter(d => !isDerivedChar(d.character, language));
+    const derivedDefs = glyphDefs.filter(d =>  isDerivedChar(d.character, language));
+    const keyGlyphs     = shuffle(keyDefs.map(d => makeGlyph(d.character, d.unicode, d.type, false)));
+    const derivedGlyphs = derivedDefs.map(d => makeGlyph(d.character, d.unicode, d.type, true));
+    return {
       id: nanoid(),
-      character: def.character,
-      unicode: def.unicode,
-      type: def.type,
-      strokes: [],
-      isComplete: false,
-    }))
+      name: `My Font ${new Date().toLocaleDateString('ko-KR')}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      language,
+      glyphs: [...keyGlyphs, ...derivedGlyphs],
+      metadata: DEFAULT_METADATA,
+      isSmartMode: true,
+    };
+  }
+
+  const glyphs: Glyph[] = shuffle(
+    glyphDefs.map((def) => makeGlyph(def.character, def.unicode, def.type, false))
   );
   return {
     id: nanoid(),
@@ -55,6 +79,7 @@ export function CreateFlow() {
 
   const [step, setStep]         = useState<FlowStep>(fontId ? 'loading' : 'language');
   const [language, setLanguage] = useState<FontLanguage>('en');
+  const [smartMode, setSmartMode] = useState(false);
   const [font, setFont]         = useState<UserFont | null>(null);
 
   // If fontId is in URL, load existing font and jump straight to drawing
@@ -65,21 +90,26 @@ export function CreateFlow() {
         setFont(existing);
         setStep('drawing');
       } else {
-        // fontId not found — fall back to language selection
         setStep('language');
       }
     });
   }, [fontId]);
 
   const handleStart = useCallback(() => {
-    const newFont = buildFont(language);
+    const newFont = buildFont(language, smartMode);
     setFont(newFont);
     setStep('drawing');
     analytics.startCreation(language);
-  }, [language]);
+  }, [language, smartMode]);
 
   const handleFontUpdate = useCallback((updated: UserFont) => {
-    setFont(updated);
+    if (updated.isSmartMode) {
+      // Re-derive after every glyph commit so derived glyphs update reactively.
+      const withDerived = { ...updated, glyphs: deriveGlyphs(updated.glyphs, updated.language) };
+      setFont(withDerived);
+    } else {
+      setFont(updated);
+    }
   }, []);
 
   return (
@@ -112,6 +142,8 @@ export function CreateFlow() {
               selected={language}
               onSelect={setLanguage}
               onStart={handleStart}
+              smartMode={smartMode}
+              onSmartMode={setSmartMode}
             />
           </motion.div>
         )}

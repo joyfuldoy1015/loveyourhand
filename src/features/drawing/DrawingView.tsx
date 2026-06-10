@@ -138,12 +138,18 @@ export function DrawingView({ font, onFontUpdate }: Props) {
   }, [strokes, commitCurrentGlyph]);
 
   // ── Navigation ────────────────────────────────────────────────
+  // In Smart Mode the drawing queue is only the non-derived (key) glyphs,
+  // which are always placed first in font.glyphs by buildFont.
+  const keyGlyphCount = font.isSmartMode
+    ? font.glyphs.filter((g) => !g.isDerived).length
+    : font.glyphs.length;
+
   const goTo = (idx: number) => {
     setCurrentIndex(idx);
   };
 
   const handleNext = () => {
-    if (currentIndex < font.glyphs.length - 1) goTo(currentIndex + 1);
+    if (currentIndex < keyGlyphCount - 1) goTo(currentIndex + 1);
   };
 
   const handlePrev = () => {
@@ -167,6 +173,12 @@ export function DrawingView({ font, onFontUpdate }: Props) {
   if (!currentGlyph) return null;
 
   const completedCount = font.glyphs.filter((g) => g.isComplete).length;
+  const drawnCount     = font.isSmartMode
+    ? font.glyphs.filter((g) => g.isComplete && !g.isDerived).length
+    : completedCount;
+  const derivedCount   = font.isSmartMode
+    ? font.glyphs.filter((g) => g.isComplete && g.isDerived).length
+    : 0;
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-start justify-center w-full max-w-5xl mx-auto px-4">
@@ -198,7 +210,7 @@ export function DrawingView({ font, onFontUpdate }: Props) {
             onClick={() => {
               const undrawn = font.glyphs
                 .map((g, i) => ({ g, i }))
-                .filter(({ g, i }) => !g.isComplete && i !== currentIndex);
+                .filter(({ g, i }) => !g.isComplete && i !== currentIndex && !g.isDerived);
               if (undrawn.length === 0) return;
               const pick = undrawn[Math.floor(Math.random() * undrawn.length)];
               goTo(pick.i);
@@ -255,9 +267,9 @@ export function DrawingView({ font, onFontUpdate }: Props) {
           <GlyphNav
             glyph={currentGlyph}
             index={currentIndex}
-            total={font.glyphs.length}
+            total={keyGlyphCount}
             canPrev={currentIndex > 0}
-            canNext={currentIndex < font.glyphs.length - 1}
+            canNext={currentIndex < keyGlyphCount - 1}
             onPrev={handlePrev}
             onNext={handleNext}
             onFinish={handleFinish}
@@ -266,7 +278,9 @@ export function DrawingView({ font, onFontUpdate }: Props) {
 
         {/* Save indicator */}
         <p className="text-[10px] text-[#ABABAB]">
-          {isSaving ? 'Saving...' : `${completedCount} glyphs drawn · auto-saved`}
+          {isSaving ? 'Saving…' : font.isSmartMode
+            ? `${drawnCount} drawn · ${derivedCount} auto-generated · auto-saved`
+            : `${completedCount} glyphs drawn · auto-saved`}
         </p>
       </div>
 
@@ -276,9 +290,16 @@ export function DrawingView({ font, onFontUpdate }: Props) {
           className="flex items-center justify-between w-full mb-3 lg:cursor-default"
           onClick={() => setShowProgress((v) => !v)}
         >
-          <span className="text-[10px] font-medium tracking-widest uppercase text-[#6B6B6B]">
-            Progress
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-medium tracking-widest uppercase text-[#6B6B6B]">
+              Progress
+            </span>
+            {font.isSmartMode && (
+              <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[#EDE7F6] text-[#7B1FA2] tracking-wide">
+                Smart
+              </span>
+            )}
+          </div>
           <span className="text-[10px] text-[#ABABAB] lg:hidden">
             {showProgress ? 'Hide' : 'Show'}
           </span>

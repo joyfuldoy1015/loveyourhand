@@ -28,6 +28,7 @@ export interface Glyph {
   normalizedPath?: string;
   boundingBox?: BoundingBox;
   isComplete: boolean;
+  isDerived?: boolean;
   drawnAt?: string;
 }
 
@@ -59,6 +60,7 @@ export interface UserFont {
   glyphs: Glyph[];
   metadata: FontMetadata;
   ttfBuffer?: ArrayBuffer;
+  isSmartMode?: boolean;
 }
 
 // ─── Glyph Collection Types ───────────────────────────────────────
