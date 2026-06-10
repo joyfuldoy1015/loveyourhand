@@ -26,7 +26,7 @@ export const TARGET = {
 // ─── Pre-smoothing helpers ────────────────────────────────────────
 
 // Remove points that are too close together (mouse stutter / pause artifacts)
-function minDistanceFilter(points: Point[], minDist = 3): Point[] {
+export function minDistanceFilter(points: Point[], minDist = 3): Point[] {
   if (points.length <= 2) return points;
   const out: Point[] = [points[0]];
   for (let i = 1; i < points.length; i++) {
@@ -43,7 +43,7 @@ function minDistanceFilter(points: Point[], minDist = 3): Point[] {
 
 // Laplacian smooth: moves each interior point toward the avg of its neighbors.
 // Preserves endpoints. Run multiple passes for stronger effect.
-function smoothPoints(points: Point[], passes = 3): Point[] {
+export function smoothPoints(points: Point[], passes = 3): Point[] {
   if (points.length <= 2) return points;
   let pts = points;
   for (let pass = 0; pass < passes; pass++) {
@@ -70,7 +70,7 @@ function perpDist(p: Point, a: Point, b: Point): number {
   return Math.abs(dy * p.x - dx * p.y + b.x * a.y - b.y * a.x) / len;
 }
 
-function douglasPeucker(points: Point[], epsilon: number): Point[] {
+export function douglasPeucker(points: Point[], epsilon: number): Point[] {
   if (points.length <= 2) return [...points];
   let maxDist = 0;
   let maxIdx = 0;

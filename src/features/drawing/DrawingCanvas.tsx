@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useCallback } from 'react';
 import type { Point, Stroke } from '@/types';
-import { drawSmoothStroke, drawGuides } from '@/lib/normalizer';
+import { drawSmoothStroke, drawGuides, minDistanceFilter, smoothPoints, douglasPeucker } from '@/lib/normalizer';
 
 interface Props {
   width: number;
@@ -133,9 +133,14 @@ export function DrawingCanvas({
 
     if (pts.length === 0) return;
 
+    // Stroke settling: smooth the raw points before storing.
+    // This mirrors the normalizer pipeline but at canvas scale,
+    // so the canvas displays the same clean shape used for font rendering.
+    const settled = douglasPeucker(smoothPoints(minDistanceFilter(pts, 2), 4), 1.0);
+
     const newStroke: Stroke = {
       id: nextId(),
-      points: pts,
+      points: settled,
       width: strokeWidthRef.current,
       color: strokeColorRef.current,
     };
