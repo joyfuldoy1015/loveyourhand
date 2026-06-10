@@ -216,7 +216,7 @@ export function DrawingView({ font, onFontUpdate }: Props) {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="text-base font-medium text-[#1A1A1A] tracking-wide"
+          className="text-base font-medium text-[#1A1A1A] tracking-wide text-center"
         >
           Creating your card
         </motion.p>
@@ -224,7 +224,7 @@ export function DrawingView({ font, onFontUpdate }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.5 }}
-          className="text-sm text-[#ABABAB] mt-1.5"
+          className="text-sm text-[#ABABAB] mt-1.5 text-center"
         >
           Turning your handwriting into something beautiful
         </motion.p>
