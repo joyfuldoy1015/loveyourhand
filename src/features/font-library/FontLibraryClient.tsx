@@ -113,46 +113,46 @@ function FontCard({ font, isDeleting, onEdit, onPreview, onCard, onDelete }: Fon
   const drawnCount = font.glyphs.filter((g) => g.isComplete).length;
   const total      = font.glyphs.length;
   const pct        = total > 0 ? Math.round((drawnCount / total) * 100) : 0;
+  const displayName = font.name || 'Untitled font';
 
   return (
     <div
       className={`rounded-2xl border border-[#EAEAEA] bg-white p-5 transition-opacity
         ${isDeleting ? 'opacity-40 pointer-events-none' : ''}`}
     >
+      {/* Top row: thumbnail + info */}
       <div className="flex items-start gap-4">
-        {/* Preview swatch */}
         <div className="w-12 h-12 rounded-xl bg-[#FAFAF8] border border-[#EAEAEA] flex items-center justify-center shrink-0 text-xl font-medium text-[#1A1A1A]" style={{ fontFamily: 'Georgia, serif' }}>
           Aa
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <p className="text-sm font-medium text-[#1A1A1A] truncate">{font.name}</p>
-            <span className="text-[10px] font-medium tracking-wider uppercase text-[#ABABAB] border border-[#EAEAEA] rounded-full px-2 py-0.5">
+            <p className="text-sm font-medium text-[#1A1A1A] truncate">{displayName}</p>
+            <span className="text-[10px] font-medium tracking-wider uppercase text-[#ABABAB] border border-[#EAEAEA] rounded-full px-2 py-0.5 shrink-0">
               {font.language.toUpperCase()}
             </span>
           </div>
-          <p className="text-[11px] text-[#6B6B6B]">
+          <p className="text-[11px] text-[#6B6B6B] whitespace-nowrap">
             {drawnCount}/{total} glyphs · {formatDate(font.updatedAt)}
           </p>
 
-          {/* Progress bar */}
-          <div className="mt-2.5 h-1 bg-[#F0F0EE] rounded-full overflow-hidden w-48 max-w-full">
+          <div className="mt-2.5 h-1 bg-[#F0F0EE] rounded-full overflow-hidden w-full max-w-[180px]">
             <div
               className="h-full bg-[#1A1A1A] rounded-full transition-all duration-500"
               style={{ width: `${pct}%` }}
             />
           </div>
         </div>
+      </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1 shrink-0">
-          <ActionBtn label="Edit" onClick={onEdit} />
-          <ActionBtn label="Preview" onClick={onPreview} />
-          <ActionBtn label="Card" onClick={onCard} />
-          <ActionBtn label="Delete" onClick={onDelete} danger />
-        </div>
+      {/* Action row — below info, full width */}
+      <div className="mt-4 pt-3 border-t border-[#F5F5F3] flex items-center gap-1.5">
+        <ActionBtn label="Edit"    onClick={onEdit} />
+        <ActionBtn label="Preview" onClick={onPreview} />
+        <ActionBtn label="Card"    onClick={onCard} />
+        <div className="flex-1" />
+        <ActionBtn label="Delete"  onClick={onDelete} danger />
       </div>
     </div>
   );
