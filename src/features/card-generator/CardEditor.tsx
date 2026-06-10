@@ -20,11 +20,9 @@ const PRESETS: Record<string, string[]> = {
     'Turn your handwriting into something worth keeping.',
   ],
   ko: [
-    '내 손글씨',
-    '사랑해',
-    '오늘도 잘 해',
-    '한 번 더',
-    '이 글씨 내 거',
+    '내 손글씨로 적은 작은 하루의 조각',
+    '오늘의 마음을 적어두기',
+    '나라는 책의 한 페이지',
   ],
   ja: [
     'てのきせき',

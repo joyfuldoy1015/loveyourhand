@@ -46,7 +46,7 @@ export function CardPageClient() {
   useEffect(() => {
     const FIRST_PRESET: Record<string, string> = {
       en:    'Handmade in a machine-made world.',
-      ko:    '내 손글씨',
+      ko:    '내 손글씨로 적은 작은 하루의 조각',
       ja:    'てのきせき',
       mixed: 'Handmade in a machine-made world.',
     };
