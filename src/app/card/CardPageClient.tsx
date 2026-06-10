@@ -11,7 +11,7 @@ import { CardExporter } from '@/features/card-generator/CardExporter';
 import { Header } from '@/components/layout';
 import { Button } from '@/components/ui';
 
-const PREVIEW_SCALE = 0.35;
+const CARD_SIZE = 1200;
 
 export function CardPageClient() {
   const searchParams = useSearchParams();
@@ -20,6 +20,18 @@ export function CardPageClient() {
 
   const [font, setFont]             = useState<UserFont | null>(null);
   const [isLoading, setIsLoading]   = useState(true);
+  const [previewScale, setPreviewScale] = useState(0.35);
+
+  // Responsive preview scale: fit within screen width minus padding
+  useEffect(() => {
+    const update = () => {
+      const available = Math.min(window.innerWidth - 32, 420);
+      setPreviewScale(available / CARD_SIZE);
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   // Card config state
   const [text, setText]             = useState('Handmade in a machine-made world.');
@@ -121,15 +133,15 @@ export function CardPageClient() {
               <div
                 className="rounded-2xl overflow-hidden"
                 style={{
-                  width:  1200 * PREVIEW_SCALE,
-                  height: 1200 * PREVIEW_SCALE,
+                  width:  1200 * previewScale,
+                  height: 1200 * previewScale,
                   boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
                   pointerEvents: 'none',
                 }}
               >
                 <div
                   style={{
-                    transform: `scale(${PREVIEW_SCALE})`,
+                    transform: `scale(${previewScale})`,
                     transformOrigin: 'top left',
                     width: 1200,
                     height: 1200,
