@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import type { UserFont, PostitColor } from '@/types';
 import { fontRepo } from '@/lib/db';
+import { normalizeGlyphStrokes } from '@/lib/normalizer';
 import { CardEditor } from '@/features/card-generator/CardEditor';
 import { PostitCard } from '@/features/card-generator/PostitCard';
 import { CardExporter } from '@/features/card-generator/CardExporter';
@@ -53,9 +54,19 @@ export function CardPageClient() {
     const fontId = searchParams.get('fontId');
     setIsLoading(true);
     const apply = (f: UserFont | undefined) => {
-      const resolved = f ?? null;
+      let resolved = f ?? null;
+      if (resolved) {
+        // Re-compute normalizedPath from strokes so fonts drawn under a different
+        // normalization version render consistently.
+        const glyphs = resolved.glyphs.map((g) => {
+          if (!g.isComplete || !g.strokes.length || g.isDerived) return g;
+          const n = normalizeGlyphStrokes(g.strokes);
+          return { ...g, normalizedPath: n.svgPaths.join(' '), boundingBox: n.boundingBox };
+        });
+        resolved = { ...resolved, glyphs };
+        setText(FIRST_PRESET[resolved.language] ?? FIRST_PRESET.en);
+      }
       setFont(resolved);
-      if (resolved) setText(FIRST_PRESET[resolved.language] ?? FIRST_PRESET.en);
       setIsLoading(false);
     };
     if (fontId) {

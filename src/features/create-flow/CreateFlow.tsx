@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid';
 import type { FontLanguage, UserFont, Glyph } from '@/types';
 import { getGlyphsForLanguage } from '@/lib/glyphs';
 import { fontRepo } from '@/lib/db';
+import { normalizeGlyphStrokes } from '@/lib/normalizer';
 import { deriveGlyphs, isDerivedChar } from '@/lib/smartGlyph';
 import { LanguageSelector } from './LanguageSelector';
 import { DrawingView } from '@/features/drawing/DrawingView';
@@ -87,7 +88,14 @@ export function CreateFlow() {
     if (!fontId) return;
     fontRepo.getById(fontId).then((existing) => {
       if (existing) {
-        setFont(existing);
+        // Re-compute normalizedPath from stored strokes so any font drawn under a
+        // different normalization algorithm gets corrected automatically on load.
+        const glyphs = existing.glyphs.map((g) => {
+          if (!g.isComplete || !g.strokes.length || g.isDerived) return g;
+          const n = normalizeGlyphStrokes(g.strokes);
+          return { ...g, normalizedPath: n.svgPaths.join(' '), boundingBox: n.boundingBox };
+        });
+        setFont({ ...existing, glyphs });
         setStep('drawing');
       } else {
         setStep('language');

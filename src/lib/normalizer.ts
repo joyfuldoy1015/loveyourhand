@@ -172,33 +172,23 @@ export function normalizeGlyphStrokes(
   if (rawBbox.width === 0 && rawBbox.height === 0) return empty;
 
   // Step 3: determine scale
-  // Use a FIXED scale derived from the guide proportions so all glyphs share
-  // the same coordinate mapping. This preserves:
-  //  - uppercase vs lowercase height differences
-  //  - baseline, x-height, ascender, descender positions
-  //
-  // guideH = canvas pixels between the ascender and baseline guide lines.
-  // targetH = same span in target units (76 - 12 = 64).
-  // Fixed scale = targetH / guideH  =  64 / (0.64 * canvasSize)  =  TARGET.size / canvasSize.
-  //
-  // With this scale every canvas guide line maps exactly to its TARGET counterpart:
-  //   canvas * GUIDE_RATIOS.baseline * canvasSize * scale = TARGET.baseline  ✓
-  //   canvas * GUIDE_RATIOS.ascender  * canvasSize * scale = TARGET.ascender  ✓
-  //   canvas * GUIDE_RATIOS.xHeight   * canvasSize * scale = TARGET.xHeight   ✓
-  //   canvas * GUIDE_RATIOS.descender * canvasSize * scale = TARGET.descender ✓
+  // Scale so the glyph fills the full ascender→baseline target range (64 units).
+  // Using rawBbox.height as the source height ensures every glyph is rendered at
+  // a consistent visual size regardless of how large or small it was drawn on canvas.
   const guideAscY  = canvasSize * GUIDE_RATIOS.ascender;
   const guideBaseY = canvasSize * GUIDE_RATIOS.baseline;
   const guideH     = guideBaseY - guideAscY;
   const targetH    = TARGET.baseline - TARGET.ascender;
 
-  const scaleY = targetH / guideH; // fixed scale (≈ TARGET.size / canvasSize)
-  const scaleX = scaleY;
+  const usedH  = rawBbox.height === 0 ? guideH : rawBbox.height;
+  const scaleY = targetH / usedH;
+  const scaleX = scaleY; // uniform scale
 
   // Step 4: translate
-  // y: no vertical shift needed — the fixed scale already maps guide positions correctly.
-  const dy = 0;
+  // y: pin the bottom of the glyph's bounding box to the target baseline.
+  const dy = TARGET.baseline - (rawBbox.y + rawBbox.height) * scaleY;
 
-  // x: center the glyph horizontally in the target space.
+  // x: center within target
   const scaledW = rawBbox.width * scaleX;
   const targetCenter = TARGET.size / 2;
   const dx = targetCenter - (rawBbox.x * scaleX + scaledW / 2);
