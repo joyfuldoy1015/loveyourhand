@@ -47,13 +47,16 @@ export function DrawingView({ font, onFontUpdate }: Props) {
   }, []);
 
   // ── Load strokes for current glyph ────────────────────────────
+  // Depend on font.id (not the full font object) so that stroke commits
+  // don't reset the undo stack — only glyph navigation or font switch does.
   useEffect(() => {
     const glyph = font.glyphs[currentIndex];
     if (!glyph) return;
     setStrokes(glyph.strokes ?? []);
     setUndoStack([]);
     setRedoStack([]);
-  }, [currentIndex, font]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, font.id]);
 
   // ── Auto-save every 5 seconds ─────────────────────────────────
   useEffect(() => {
