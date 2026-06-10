@@ -40,7 +40,7 @@ export function HeroSection() {
           <br />
           YOUR
           <br />
-          HAND.
+          HAND
         </motion.h1>
 
         {/* Sub copy */}
