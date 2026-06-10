@@ -20,11 +20,11 @@ const PRESETS: Record<string, string[]> = {
     'Turn your handwriting into something worth keeping.',
   ],
   ko: [
-    'ㄴㅐ ㅅㅗㄴㄱㅡㄹㅆㅣ',
-    'ㅅㅏㄹㄹㅏㅇ ㅎㅐ',
-    'ㅇㅗㄴㄹㅡㄹ ㄷㅗ ㅈㅏㄹ',
-    'ㅎㅏㄴ ㅂㅓㄴ ㄷㅓ',
-    'ㅇㅣ ㄱㅡㄹㅆㅣ ㄴㅐ ㄱㅓ',
+    '내 손글씨',
+    '사랑해',
+    '오늘도 잘 해',
+    '한 번 더',
+    '이 글씨 내 거',
   ],
   ja: [
     'てのきせき',
