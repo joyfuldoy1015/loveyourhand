@@ -30,7 +30,7 @@ export function DrawingView({ font, onFontUpdate }: Props) {
   const [redoStack, setRedoStack]       = useState<Stroke[][]>([]);
   const [penSize, setPenSize]           = useState(4);
   const [canvasSize, setCanvasSize]     = useState(CANVAS_DESKTOP);
-  const [showProgress, setShowProgress] = useState(false);
+  const [showProgress, setShowProgress] = useState(true);
   const [isSaving, setIsSaving]         = useState(false);
 
   const fontRef     = useRef<UserFont>(font);
