@@ -90,14 +90,15 @@ export function HandwritingText({
                   ))}
                 </g>
               ) : (
-                // Fallback: draw char as text (uses system font)
+                // Fallback: undrawn char — same color/weight as drawn glyphs
                 <text
                   key={`${li}-${ci}`}
                   x={xCursor}
                   y={yBase}
-                  fontSize={fontSize}
-                  fontFamily="'Georgia', serif"
-                  fill={`${color}40`}
+                  fontSize={fontSize * 0.9}
+                  fontFamily="'Helvetica Neue', Arial, sans-serif"
+                  fontWeight="200"
+                  fill={color}
                   letterSpacing="0"
                 >
                   {char}
