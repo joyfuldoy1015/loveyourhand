@@ -156,9 +156,9 @@ export function CardEditor({
         <SliderRow
           label="Font size"
           value={fontSize}
-          min={40}
-          max={120}
-          step={4}
+          min={32}
+          max={256}
+          step={8}
           display={`${fontSize}px`}
           onChange={onFontSize}
         />

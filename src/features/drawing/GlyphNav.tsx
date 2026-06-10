@@ -20,7 +20,7 @@ export function GlyphNav({ glyph, index, total, canPrev, canNext, onPrev, onNext
   return (
     <div className="flex items-center justify-between gap-3">
       {/* Prev */}
-      <NavButton onClick={onPrev} disabled={!canPrev} dir="prev">
+      <NavButton onClick={onPrev} disabled={!canPrev}>
         <ChevronLeft />
         <span className="hidden sm:inline text-xs">Prev</span>
       </NavButton>
@@ -46,22 +46,30 @@ export function GlyphNav({ glyph, index, total, canPrev, canNext, onPrev, onNext
           <ArrowRight />
         </motion.button>
       ) : (
-        <NavButton onClick={onNext} disabled={!canNext} dir="next">
-          <span className="hidden sm:inline text-xs">Next</span>
+        <motion.button
+          whileTap={{ scale: canNext ? 0.95 : 1 }}
+          onClick={onNext}
+          disabled={!canNext}
+          className={`flex items-center gap-1.5 px-4 h-9 rounded-full text-xs font-medium transition-colors ${
+            canNext
+              ? 'bg-[#1A1A1A] text-[#FAFAF8] hover:bg-[#2D2D2D]'
+              : 'opacity-30 cursor-not-allowed bg-[#1A1A1A] text-[#FAFAF8]'
+          }`}
+        >
+          <span>Next</span>
           <ChevronRight />
-        </NavButton>
+        </motion.button>
       )}
     </div>
   );
 }
 
 function NavButton({
-  children, onClick, disabled, dir,
+  children, onClick, disabled,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   disabled: boolean;
-  dir: 'prev' | 'next';
 }) {
   return (
     <motion.button

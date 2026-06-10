@@ -22,6 +22,7 @@ export function CardPageClient() {
   const [font, setFont]             = useState<UserFont | null>(null);
   const [isLoading, setIsLoading]   = useState(true);
   const [previewScale, setPreviewScale] = useState(0.35);
+  const [cardHeight, setCardHeight] = useState(CARD_SIZE);
 
   // Responsive preview scale: fit within screen width minus padding
   useEffect(() => {
@@ -34,10 +35,19 @@ export function CardPageClient() {
     return () => window.removeEventListener('resize', update);
   }, []);
 
+  // Track actual card height for dynamic preview sizing
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setCardHeight(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isLoading]);
+
   // Card config state
   const [text, setText]             = useState('Handmade in a machine-made world.');
   const [color, setColor]           = useState<PostitColor>('yellow');
-  const [fontSize, setFontSize]     = useState(72);
+  const [fontSize, setFontSize]     = useState(96);
   const [lineHeight, setLineHeight] = useState(1.55);
   const [padding, setPadding]       = useState(96);
   const [template, setTemplate]     = useState<'postit' | 'note' | 'polaroid'>('postit');
@@ -97,13 +107,14 @@ export function CardPageClient() {
     <>
       <Header minimal />
       <main className="flex-1 pt-16">
-        <div className="max-w-6xl mx-auto px-4 py-10">
+        {/* Mobile: editor pinned above preview; Desktop: side by side */}
+        <div className="max-w-6xl mx-auto px-4 py-6 lg:py-10">
 
-          {/* Header */}
+          {/* Header — hidden on mobile to save space */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
+            className="hidden lg:block mb-8"
           >
             <p className="text-label text-[#6B6B6B] mb-1">Step 2 of 2</p>
             <h1 className="text-headline font-normal">Create your card</h1>
@@ -132,20 +143,21 @@ export function CardPageClient() {
             )}
           </motion.div>
 
-          <div className="flex flex-col lg:flex-row gap-8 items-start">
+          {/* Mobile: editor first (top), preview below. Desktop: preview left, editor right */}
+          <div className="flex flex-col-reverse lg:flex-row gap-6 lg:gap-8 items-start">
 
             {/* ── Preview ──────────────────────────────────────────── */}
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.1 }}
-              className="flex-1 flex flex-col items-center gap-6"
+              className="w-full flex-1 flex flex-col items-center gap-4"
             >
               <div
-                className="rounded-2xl overflow-hidden"
+                className="rounded-2xl overflow-hidden mx-auto"
                 style={{
-                  width:  1200 * previewScale,
-                  height: 1200 * previewScale,
+                  width:  CARD_SIZE * previewScale,
+                  height: cardHeight * previewScale,
                   boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
                   pointerEvents: 'none',
                 }}
@@ -154,8 +166,8 @@ export function CardPageClient() {
                   style={{
                     transform: `scale(${previewScale})`,
                     transformOrigin: 'top left',
-                    width: 1200,
-                    height: 1200,
+                    width: CARD_SIZE,
+                    height: cardHeight,
                   }}
                 >
                   <PostitCard

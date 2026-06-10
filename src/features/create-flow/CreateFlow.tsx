@@ -80,7 +80,6 @@ export function CreateFlow() {
 
   const [step, setStep]         = useState<FlowStep>(fontId ? 'loading' : 'language');
   const [language, setLanguage] = useState<FontLanguage>('en');
-  const [smartMode, setSmartMode] = useState(false);
   const [font, setFont]         = useState<UserFont | null>(null);
 
   // If fontId is in URL, load existing font and jump straight to drawing
@@ -104,11 +103,11 @@ export function CreateFlow() {
   }, [fontId]);
 
   const handleStart = useCallback(() => {
-    const newFont = buildFont(language, smartMode);
+    const newFont = buildFont(language, false);
     setFont(newFont);
     setStep('drawing');
     analytics.startCreation(language);
-  }, [language, smartMode]);
+  }, [language]);
 
   const handleFontUpdate = useCallback((updated: UserFont) => {
     if (updated.isSmartMode) {
@@ -150,8 +149,6 @@ export function CreateFlow() {
               selected={language}
               onSelect={setLanguage}
               onStart={handleStart}
-              smartMode={smartMode}
-              onSmartMode={setSmartMode}
             />
           </motion.div>
         )}

@@ -69,7 +69,7 @@ function renderJamo(
   const sx = region.rw * baseScale;
   const sy = region.rh * baseScale;
   // Compensate strokeWidth for the sub-region scaling so lines stay consistent
-  const sw = Math.max(1.5, fontSize * 0.042) / Math.min(region.rw, region.rh);
+  const sw = Math.max(2, fontSize * 0.068) / Math.min(region.rw, region.rh);
   return (
     <g key={key} transform={`translate(${f(tx)}, ${f(ty)})`}>
       {glyph.normalizedPath.split('M').filter(Boolean).map((seg, si) => (
@@ -101,17 +101,37 @@ export function HandwritingText({
 
   const rawLines = text.replace(/\r\n/g, '\n').split('\n');
 
+  // Break a word that is itself wider than maxWidth into character-level chunks
+  const breakWord = (word: string): string[] => {
+    if (!maxWidth || estimateWidth(word, glyphMap, scale) <= maxWidth) return [word];
+    const chunks: string[] = [];
+    let chunk = '';
+    for (const ch of word) {
+      const test = chunk + ch;
+      if (estimateWidth(test, glyphMap, scale) > maxWidth && chunk) {
+        chunks.push(chunk);
+        chunk = ch;
+      } else {
+        chunk = test;
+      }
+    }
+    if (chunk) chunks.push(chunk);
+    return chunks;
+  };
+
   const lines: string[] = [];
   for (const raw of rawLines) {
     if (!maxWidth) { lines.push(raw); continue; }
     const words = raw.split(' ');
     let cur = '';
     for (const w of words) {
-      const test = cur ? `${cur} ${w}` : w;
-      if (estimateWidth(test, glyphMap, scale) > maxWidth && cur) {
-        lines.push(cur); cur = w;
-      } else {
-        cur = test;
+      for (const part of breakWord(w)) {
+        const test = cur ? `${cur} ${part}` : part;
+        if (estimateWidth(test, glyphMap, scale) > maxWidth && cur) {
+          lines.push(cur); cur = part;
+        } else {
+          cur = test;
+        }
       }
     }
     lines.push(cur);
@@ -172,9 +192,9 @@ export function HandwritingText({
                     key={`${li}-${ci}`}
                     x={xCursor}
                     y={yBase}
-                    fontSize={fontSize * 0.9}
-                    fontFamily="'Helvetica Neue', Arial, sans-serif"
-                    fontWeight="200"
+                    fontSize={fontSize * 0.85}
+                    fontFamily="'Georgia', 'Times New Roman', serif"
+                    fontWeight="400"
                     fill={color}
                   >
                     {char}
@@ -187,14 +207,19 @@ export function HandwritingText({
 
               // ── Latin / other glyph ────────────────────────────
               const glyph = glyphMap.get(char);
+              const bboxX = glyph?.boundingBox?.x ?? 0;
+              // Pin the left edge of the glyph's strokes to xCursor by offsetting
+              // the translate by -bboxX*scale. This makes every glyph start its
+              // visible strokes exactly at xCursor regardless of where they sit in
+              // the 0–100 normalized space.
               const advW = glyph?.boundingBox
-                ? (glyph.boundingBox.width + TARGET.padding * 2) * scale
-                : fontSize * 0.6;
+                ? glyph.boundingBox.width * scale + fontSize * 0.05
+                : fontSize * 0.55;
 
               const el = glyph?.normalizedPath ? (
                 <g
                   key={`${li}-${ci}`}
-                  transform={`translate(${xCursor}, ${yBase - fontSize})`}
+                  transform={`translate(${f(xCursor - bboxX * scale)}, ${f(yBase - fontSize)})`}
                 >
                   {glyph.normalizedPath.split('M').filter(Boolean).map((seg, si) => (
                     <path
@@ -202,7 +227,7 @@ export function HandwritingText({
                       d={`M${seg}`}
                       fill="none"
                       stroke={color}
-                      strokeWidth={Math.max(2, fontSize * 0.042)}
+                      strokeWidth={Math.max(3, fontSize * 0.09)}
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       transform={`scale(${scale})`}
@@ -214,16 +239,16 @@ export function HandwritingText({
                   key={`${li}-${ci}`}
                   x={xCursor}
                   y={yBase}
-                  fontSize={fontSize * 0.9}
-                  fontFamily="'Helvetica Neue', Arial, sans-serif"
-                  fontWeight="200"
+                  fontSize={fontSize * 0.85}
+                  fontFamily="var(--font-nunito), 'Arial Rounded MT Bold', Arial, sans-serif"
+                  fontWeight="500"
                   fill={color}
                 >
                   {char}
                 </text>
               );
 
-              xCursor += advW + fontSize * 0.04;
+              xCursor += advW;
               return el;
             })}
           </g>
@@ -250,9 +275,8 @@ function estimateWidth(
     }
     const g = glyphMap.get(ch);
     w += g?.boundingBox
-      ? (g.boundingBox.width + TARGET.padding * 2) * scale
-      : fontSize * 0.6;
-    w += fontSize * 0.04;
+      ? g.boundingBox.width * scale + fontSize * 0.05
+      : fontSize * 0.55;
   }
   return w;
 }

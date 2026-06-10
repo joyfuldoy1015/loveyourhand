@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { IBM_Plex_Mono, Space_Mono } from 'next/font/google';
+import { IBM_Plex_Mono, Space_Mono, Nunito } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
@@ -16,6 +16,13 @@ const spaceMono = Space_Mono({
   subsets: ['latin'],
   weight: ['400', '700'],
   style: ['normal', 'italic'],
+  display: 'swap',
+});
+
+const nunito = Nunito({
+  variable: '--font-nunito',
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
   display: 'swap',
 });
 
@@ -77,7 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="ko"
-      className={`${ibmPlexMono.variable} ${spaceMono.variable} h-full antialiased`}
+      className={`${ibmPlexMono.variable} ${spaceMono.variable} ${nunito.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#FAFAF8] text-[#1A1A1A]">
         {/* Skip to main content (keyboard / screen reader) */}

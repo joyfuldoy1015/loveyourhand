@@ -23,17 +23,15 @@ interface Props {
   lineHeight?: number;
   padding?: number;
   template?: 'postit' | 'note' | 'polaroid';
-  isExport?: boolean;
 }
 
 export const PostitCard = forwardRef<HTMLDivElement, Props>(
   ({
     text, color, glyphs,
-    fontSize = 72,
+    fontSize = 96,
     lineHeight = 1.55,
     padding = 96,
     template = 'postit',
-    isExport = false,
   }, ref) => {
     const { bg, shadow, tape } = COLOR_MAP[color];
     const size = CARD_SIZE;
@@ -44,10 +42,9 @@ export const PostitCard = forwardRef<HTMLDivElement, Props>(
         ref={ref}
         style={{
           width: size,
-          height: size,
+          minHeight: size,
           backgroundColor: bg,
           position: 'relative',
-          overflow: 'hidden',
           fontFamily: 'Georgia, serif',
           boxSizing: 'border-box',
         }}

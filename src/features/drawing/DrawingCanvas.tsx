@@ -73,7 +73,9 @@ export function DrawingCanvas({
     // ghost character
     if (ghostChar) {
       ctx.save();
-      const fontSize = Math.floor(height * 0.52);
+      // fontSize sized so lowercase x-height aligns with the xHeight guide (44%).
+      // Georgia x-height ≈ 0.47 em → fontSize = (baseline - xHeight) / 0.47 = 0.32h / 0.47 ≈ 0.68h
+      const fontSize = Math.floor(height * 0.68);
       ctx.font = `${fontSize}px 'Georgia', serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';

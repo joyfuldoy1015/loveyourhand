@@ -24,7 +24,7 @@ export function CardExporter({ cardRef, filename = 'loveyourhand-card' }: Props)
       const dataUrl = await toPng(el, {
         pixelRatio: 2,
         width:  CARD_SIZE,
-        height: CARD_SIZE,
+        height: el.offsetHeight,
         quality: 1,
         cacheBust: true,
       });
@@ -55,7 +55,7 @@ export function CardExporter({ cardRef, filename = 'loveyourhand-card' }: Props)
       </Button>
 
       <p className="text-center text-[10px] text-[#ABABAB]">
-        1200×1200px · 2× retina · PNG
+        1200px wide · 2× retina · PNG
       </p>
     </div>
   );

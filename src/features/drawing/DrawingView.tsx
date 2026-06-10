@@ -28,10 +28,11 @@ export function DrawingView({ font, onFontUpdate }: Props) {
   const [strokes, setStrokes]           = useState<Stroke[]>([]);
   const [undoStack, setUndoStack]       = useState<Stroke[][]>([]);
   const [redoStack, setRedoStack]       = useState<Stroke[][]>([]);
-  const [penSize, setPenSize]           = useState(4);
+  const [penSize, setPenSize]           = useState(6);
   const [canvasSize, setCanvasSize]     = useState(CANVAS_DESKTOP);
   const [showProgress, setShowProgress] = useState(true);
   const [isSaving, setIsSaving]         = useState(false);
+  const [isCreating, setIsCreating]     = useState(false);
 
   const fontRef     = useRef<UserFont>(font);
   const saveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -109,26 +110,22 @@ export function DrawingView({ font, onFontUpdate }: Props) {
 
   // ── Undo / Redo / Clear ───────────────────────────────────────
   const handleUndo = useCallback(() => {
-    setUndoStack((u) => {
-      if (u.length === 0) return u;
-      const prev = u[u.length - 1];
-      setRedoStack((r) => [...r, strokes]);
-      setStrokes(prev);
-      commitCurrentGlyph(prev);
-      return u.slice(0, -1);
-    });
-  }, [strokes, commitCurrentGlyph]);
+    if (undoStack.length === 0) return;
+    const prev = undoStack[undoStack.length - 1];
+    setRedoStack((r) => [...r, strokes]);
+    setStrokes(prev);
+    setUndoStack((u) => u.slice(0, -1));
+    commitCurrentGlyph(prev);
+  }, [strokes, undoStack, commitCurrentGlyph]);
 
   const handleRedo = useCallback(() => {
-    setRedoStack((r) => {
-      if (r.length === 0) return r;
-      const next = r[r.length - 1];
-      setUndoStack((u) => [...u, strokes]);
-      setStrokes(next);
-      commitCurrentGlyph(next);
-      return r.slice(0, -1);
-    });
-  }, [strokes, commitCurrentGlyph]);
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setUndoStack((u) => [...u, strokes]);
+    setStrokes(next);
+    setRedoStack((r) => r.slice(0, -1));
+    commitCurrentGlyph(next);
+  }, [strokes, redoStack, commitCurrentGlyph]);
 
   const handleClear = useCallback(() => {
     setUndoStack((u) => [...u, strokes]);
@@ -157,6 +154,7 @@ export function DrawingView({ font, onFontUpdate }: Props) {
   };
 
   const handleFinish = async () => {
+    setIsCreating(true);
     const updated = commitCurrentGlyph(strokes);
     await persistFont(updated);
     await sessionRepo.save({
@@ -166,11 +164,85 @@ export function DrawingView({ font, onFontUpdate }: Props) {
       glyphOrder: updated.glyphs.map((g) => g.id),
       savedAt: new Date().toISOString(),
     });
+    // Hold the animation for at least 1.8s before navigating
+    await new Promise((r) => setTimeout(r, 1800));
     router.push(`/card?fontId=${updated.id}`);
   };
 
   const currentGlyph = font.glyphs[currentIndex];
   if (!currentGlyph) return null;
+
+  if (isCreating) {
+    const drawnGlyphs = font.glyphs.filter((g) => g.isComplete && !g.isDerived).slice(0, 8);
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#FAFAF8]"
+      >
+        {/* Floating glyph previews */}
+        <div className="flex items-end gap-3 mb-10 h-16">
+          {drawnGlyphs.map((g, i) => (
+            <motion.div
+              key={g.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08, duration: 0.4, ease: 'easeOut' }}
+            >
+              <svg
+                width={36}
+                height={36}
+                viewBox="0 0 100 100"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {g.normalizedPath?.split('M').filter(Boolean).map((seg, si) => (
+                  <path
+                    key={si}
+                    d={`M${seg}`}
+                    fill="none"
+                    stroke="#1A1A1A"
+                    strokeWidth={6}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ))}
+              </svg>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Message */}
+        <motion.p
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="text-base font-medium text-[#1A1A1A] tracking-wide"
+        >
+          Creating your card
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="text-sm text-[#ABABAB] mt-1.5"
+        >
+          Turning your handwriting into something beautiful
+        </motion.p>
+
+        {/* Dot animation */}
+        <div className="flex gap-1.5 mt-8">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="w-1.5 h-1.5 rounded-full bg-[#1A1A1A]"
+              animate={{ opacity: [0.2, 1, 0.2] }}
+              transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+            />
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
 
   const completedCount = font.glyphs.filter((g) => g.isComplete).length;
   const drawnCount     = font.isSmartMode

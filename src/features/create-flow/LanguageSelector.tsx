@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import type { FontLanguage } from '@/types';
 import { staggerContainer, staggerItem } from '@/lib/animations';
-import { hasSmartModeSupport, getKeyGlyphCount } from '@/lib/smartGlyph';
 
 const OPTIONS: { value: FontLanguage; label: string; sub: string; count: number }[] = [
   { value: 'en',    label: 'English',          sub: 'A–Z · a–z · 0–9 · symbols', count: 77  },
@@ -16,13 +15,9 @@ interface Props {
   selected: FontLanguage;
   onSelect: (lang: FontLanguage) => void;
   onStart: () => void;
-  smartMode: boolean;
-  onSmartMode: (v: boolean) => void;
 }
 
-export function LanguageSelector({ selected, onSelect, onStart, smartMode, onSmartMode }: Props) {
-  const supportsSmartMode = hasSmartModeSupport(selected);
-
+export function LanguageSelector({ selected, onSelect, onStart }: Props) {
   return (
     <motion.div
       variants={staggerContainer}
@@ -40,12 +35,7 @@ export function LanguageSelector({ selected, onSelect, onStart, smartMode, onSma
 
       <motion.div variants={staggerItem} className="space-y-3 mb-6">
         {OPTIONS.map((opt) => {
-          const displayCount = (opt.value === selected && smartMode && supportsSmartMode)
-            ? getKeyGlyphCount(opt.value, opt.count)
-            : opt.count;
-          const countLabel = (opt.value === selected && smartMode && supportsSmartMode)
-            ? `~${displayCount} glyphs`
-            : `~${opt.count} glyphs`;
+          const countLabel = `~${opt.count} glyphs`;
 
           return (
             <motion.button
@@ -85,36 +75,6 @@ export function LanguageSelector({ selected, onSelect, onStart, smartMode, onSma
         })}
       </motion.div>
 
-      {/* Smart Glyph Mode toggle — only shown for languages that support it */}
-      {supportsSmartMode && (
-        <motion.div
-          variants={staggerItem}
-          className="mb-6 p-4 rounded-2xl border border-[#EAEAEA] bg-[#FAFAF8]"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-[#1A1A1A]">Smart Glyph Mode</p>
-              <p className="text-xs text-[#6B6B6B] mt-0.5">
-                Draw ~{getKeyGlyphCount(selected, OPTIONS.find(o => o.value === selected)?.count ?? 77)} key glyphs.
-                Uppercase letters are auto-generated from your style.
-              </p>
-            </div>
-            <button
-              onClick={() => onSmartMode(!smartMode)}
-              className={`relative w-10 h-6 rounded-full flex-shrink-0 transition-colors ${
-                smartMode ? 'bg-[#1A1A1A]' : 'bg-[#EAEAEA]'
-              }`}
-              aria-pressed={smartMode}
-            >
-              <span
-                className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                  smartMode ? 'translate-x-5' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-        </motion.div>
-      )}
 
       <motion.div variants={staggerItem}>
         <button

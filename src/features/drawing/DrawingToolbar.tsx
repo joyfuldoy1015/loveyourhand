@@ -2,8 +2,6 @@
 
 import { motion } from 'framer-motion';
 
-const PEN_SIZES = [2, 4, 6, 8] as const;
-
 interface Props {
   penSize: number;
   canUndo: boolean;
@@ -21,29 +19,25 @@ export function DrawingToolbar({
 }: Props) {
   return (
     <div className="flex items-center justify-between gap-3 px-1">
-      {/* Pen size */}
-      <div className="flex items-center gap-1.5">
-        {PEN_SIZES.map((s) => (
-          <button
-            key={s}
-            onClick={() => onPenSize(s)}
-            aria-label={`Pen size ${s}`}
-            className={`flex items-center justify-center w-8 h-8 rounded-full transition-colors ${
-              penSize === s
-                ? 'bg-[#1A1A1A]'
-                : 'bg-transparent hover:bg-[#F0F0EE]'
-            }`}
-          >
-            <span
-              className="rounded-full bg-current"
-              style={{
-                width: s + 2,
-                height: s + 2,
-                backgroundColor: penSize === s ? '#FAFAF8' : '#1A1A1A',
-              }}
-            />
-          </button>
-        ))}
+      {/* Pen size slider */}
+      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+        <span
+          className="rounded-full bg-[#1A1A1A] flex-shrink-0 transition-all duration-100"
+          style={{
+            width:  Math.min(penSize, 20),
+            height: Math.min(penSize, 20),
+          }}
+        />
+        <input
+          type="range"
+          min={1}
+          max={40}
+          step={1}
+          value={penSize}
+          onChange={(e) => onPenSize(Number(e.target.value))}
+          aria-label="Pen size"
+          className="flex-1 h-1 accent-[#1A1A1A] cursor-pointer"
+        />
       </div>
 
       {/* Actions */}
