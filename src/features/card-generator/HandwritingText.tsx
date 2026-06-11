@@ -208,13 +208,13 @@ export function HandwritingText({
               // ── Latin / other glyph ────────────────────────────
               const glyph = glyphMap.get(char);
               const bboxX = glyph?.boundingBox?.x ?? 0;
-              // Pin the left edge of the glyph's strokes to xCursor by offsetting
-              // the translate by -bboxX*scale. This makes every glyph start its
-              // visible strokes exactly at xCursor regardless of where they sit in
-              // the 0–100 normalized space.
+              // Catmull-Rom bezier curves can overshoot their control-point bounding
+              // box by up to ~20 normalized units. At large font sizes this causes
+              // visible overlap. The 0.15 margin covers stroke overhang (0.045) plus
+              // typical bezier overshoot at any fontSize.
               const advW = glyph?.boundingBox
-                ? glyph.boundingBox.width * scale + fontSize * 0.05
-                : fontSize * 0.55;
+                ? glyph.boundingBox.width * scale + fontSize * 0.15
+                : fontSize * 0.62;
 
               const el = glyph?.normalizedPath ? (
                 <g
@@ -275,8 +275,8 @@ function estimateWidth(
     }
     const g = glyphMap.get(ch);
     w += g?.boundingBox
-      ? g.boundingBox.width * scale + fontSize * 0.05
-      : fontSize * 0.55;
+      ? g.boundingBox.width * scale + fontSize * 0.15
+      : fontSize * 0.62;
   }
   return w;
 }
