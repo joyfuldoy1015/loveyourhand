@@ -239,9 +239,9 @@ export function HandwritingText({
                   key={`${li}-${ci}`}
                   x={xCursor}
                   y={yBase}
-                  fontSize={fontSize * 0.85}
+                  fontSize={fontSize}
                   fontFamily="var(--font-nunito), 'Arial Rounded MT Bold', Arial, sans-serif"
-                  fontWeight="500"
+                  fontWeight="600"
                   fill={color}
                 >
                   {char}
