@@ -168,6 +168,11 @@ export function HandwritingText({
     >
       {lines.map((line, li) => {
         const yBase = li * lineH + fontSize;
+        // Drawn glyphs use translate(x, yBase-fontSize) + scale, so their
+        // normalized baseline (y=76) lands at yBase - fontSize*(1-0.76) = yBase - fontSize*0.24.
+        // Fallback SVG <text> uses alphabetic baseline at its y attribute,
+        // so we apply the same offset to keep both on the same baseline.
+        const fallbackY = yBase - fontSize * (1 - TARGET.baseline / TARGET.size);
         let xCursor = 0;
 
         return (
@@ -207,7 +212,7 @@ export function HandwritingText({
                   <text
                     key={`${li}-${ci}`}
                     x={xCursor}
-                    y={yBase}
+                    y={fallbackY}
                     fontSize={fontSize * 0.85}
                     fontFamily="'Georgia', 'Times New Roman', serif"
                     fontWeight="400"
@@ -253,7 +258,7 @@ export function HandwritingText({
                 <text
                   key={`${li}-${ci}`}
                   x={xCursor}
-                  y={yBase}
+                  y={fallbackY}
                   fontSize={fontSize}
                   fontFamily="var(--font-nunito), 'Arial Rounded MT Bold', Arial, sans-serif"
                   fontWeight="600"
