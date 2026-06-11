@@ -4,6 +4,22 @@ import type { Glyph } from '@/types';
 import { TARGET } from '@/lib/normalizer';
 import { decomposeSyllable, CHOSEONG, JUNGSEONG, JONGSEONG } from '@/lib/koreanComposer';
 
+// Per-character advance width table for Nunito 600 (fraction of em).
+// Covers outliers; DEFAULT_W is used for everything else.
+const NUNITO_W: Record<string, number> = {
+  // Very narrow
+  i: 0.30, j: 0.30, l: 0.30, I: 0.30, '1': 0.38, '!': 0.32, '|': 0.28,
+  // Narrow
+  f: 0.38, r: 0.40, t: 0.44,
+  // Wide
+  m: 0.84, w: 0.80, M: 0.84, W: 0.88,
+  // Punctuation
+  '.': 0.28, ',': 0.30, ':': 0.28, ';': 0.30,
+  '-': 0.38, "'": 0.30, '"': 0.46, '(': 0.38, ')': 0.38,
+  '?': 0.54, '—': 0.72,
+};
+const DEFAULT_W = 0.58;
+
 interface Props {
   text: string;
   glyphs: Glyph[];
@@ -208,13 +224,12 @@ export function HandwritingText({
               // ── Latin / other glyph ────────────────────────────
               const glyph = glyphMap.get(char);
               const bboxX = glyph?.boundingBox?.x ?? 0;
-              // Catmull-Rom bezier curves can overshoot their control-point bounding
-              // box by up to ~20 normalized units. At large font sizes this causes
-              // visible overlap. The 0.18 margin covers stroke overhang (0.045) plus
-              // bezier overshoot at any fontSize.
+              // Bezier overshoot is eliminated by clamping in catmullRomPath, so the
+              // margin only needs to cover stroke overhang (strokeWidth/2 = 0.045em)
+              // plus a small letter gap (0.05em).
               const advW = glyph?.boundingBox
-                ? glyph.boundingBox.width * scale + fontSize * 0.18
-                : fontSize * 0.62;
+                ? glyph.boundingBox.width * scale + fontSize * 0.10
+                : (NUNITO_W[char] ?? DEFAULT_W) * fontSize + fontSize * 0.04;
 
               const el = glyph?.normalizedPath ? (
                 <g
@@ -275,8 +290,8 @@ function estimateWidth(
     }
     const g = glyphMap.get(ch);
     w += g?.boundingBox
-      ? g.boundingBox.width * scale + fontSize * 0.18
-      : fontSize * 0.62;
+      ? g.boundingBox.width * scale + fontSize * 0.10
+      : (NUNITO_W[ch] ?? DEFAULT_W) * fontSize + fontSize * 0.04;
   }
   return w;
 }

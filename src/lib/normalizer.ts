@@ -99,10 +99,26 @@ function catmullRomPath(pts: Point[], tension = 0.4): string {
     const p1 = pts[i];
     const p2 = pts[i + 1];
     const p3 = pts[Math.min(pts.length - 1, i + 2)];
-    const cp1x = p1.x + (p2.x - p0.x) * tension;
-    const cp1y = p1.y + (p2.y - p0.y) * tension;
-    const cp2x = p2.x - (p3.x - p1.x) * tension;
-    const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+    let cp1x = p1.x + (p2.x - p0.x) * tension;
+    let cp1y = p1.y + (p2.y - p0.y) * tension;
+    let cp2x = p2.x - (p3.x - p1.x) * tension;
+    let cp2y = p2.y - (p3.y - p1.y) * tension;
+
+    // Clamp control points to the axis-aligned bounding box of the 4 neighbouring
+    // data points. A Catmull-Rom spline can produce control points that lie outside
+    // the data-point range, causing the rendered bezier to overshoot the glyph's
+    // bounding box. Clamping eliminates that overshoot so the advance-width
+    // calculation stays accurate.
+    const minX = Math.min(p0.x, p1.x, p2.x, p3.x);
+    const maxX = Math.max(p0.x, p1.x, p2.x, p3.x);
+    const minY = Math.min(p0.y, p1.y, p2.y, p3.y);
+    const maxY = Math.max(p0.y, p1.y, p2.y, p3.y);
+    cp1x = Math.max(minX, Math.min(maxX, cp1x));
+    cp1y = Math.max(minY, Math.min(maxY, cp1y));
+    cp2x = Math.max(minX, Math.min(maxX, cp2x));
+    cp2y = Math.max(minY, Math.min(maxY, cp2y));
+
     d += `C${f(cp1x)},${f(cp1y)},${f(cp2x)},${f(cp2y)},${f(p2.x)},${f(p2.y)}`;
   }
   return d;
