@@ -210,10 +210,10 @@ export function HandwritingText({
               const bboxX = glyph?.boundingBox?.x ?? 0;
               // Catmull-Rom bezier curves can overshoot their control-point bounding
               // box by up to ~20 normalized units. At large font sizes this causes
-              // visible overlap. The 0.15 margin covers stroke overhang (0.045) plus
-              // typical bezier overshoot at any fontSize.
+              // visible overlap. The 0.18 margin covers stroke overhang (0.045) plus
+              // bezier overshoot at any fontSize.
               const advW = glyph?.boundingBox
-                ? glyph.boundingBox.width * scale + fontSize * 0.15
+                ? glyph.boundingBox.width * scale + fontSize * 0.18
                 : fontSize * 0.62;
 
               const el = glyph?.normalizedPath ? (
@@ -275,7 +275,7 @@ function estimateWidth(
     }
     const g = glyphMap.get(ch);
     w += g?.boundingBox
-      ? g.boundingBox.width * scale + fontSize * 0.15
+      ? g.boundingBox.width * scale + fontSize * 0.18
       : fontSize * 0.62;
   }
   return w;

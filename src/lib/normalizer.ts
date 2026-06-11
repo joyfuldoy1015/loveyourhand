@@ -172,16 +172,20 @@ export function normalizeGlyphStrokes(
   if (rawBbox.width === 0 && rawBbox.height === 0) return empty;
 
   // Step 3: determine scale
-  // Scale so the glyph fills the full ascender→baseline target range (64 units).
-  // Using rawBbox.height as the source height ensures every glyph is rendered at
-  // a consistent visual size regardless of how large or small it was drawn on canvas.
+  // Use a FIXED scale derived from the guide proportion rather than the glyph's
+  // own height. This preserves natural typographic proportions:
+  //   • 'e' drawn between xHeight and baseline → stays at x-height in card
+  //   • 'H' drawn between ascender and baseline → stays tall in card
+  // If every glyph were scaled to fill the full 64-unit range, 'e' would appear
+  // as tall as 'H', which is the bug we're fixing.
   const guideAscY  = canvasSize * GUIDE_RATIOS.ascender;
   const guideBaseY = canvasSize * GUIDE_RATIOS.baseline;
-  const guideH     = guideBaseY - guideAscY;
-  const targetH    = TARGET.baseline - TARGET.ascender;
+  const guideH     = guideBaseY - guideAscY;           // fixed canvas guide span
+  const targetH    = TARGET.baseline - TARGET.ascender; // 64 normalized units
 
-  const usedH  = rawBbox.height === 0 ? guideH : rawBbox.height;
-  const scaleY = targetH / usedH;
+  // scaleY = targetH / guideH — converts canvas px to normalized units.
+  // A glyph drawn in the xHeight zone (~32% of guideH) will occupy ~32 of 64 units.
+  const scaleY = targetH / guideH;
   const scaleX = scaleY; // uniform scale
 
   // Step 4: translate
